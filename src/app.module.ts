@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { TagModule } from './tags/tags.module';
+import { AppController } from '@app/app.controller';
+import { AppService } from '@app/app.service';
+import { TagModule } from '@app/tags/tags.module';
 
 @Module({
   imports: [TagModule],
