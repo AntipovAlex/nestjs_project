@@ -5,7 +5,8 @@ import { TagsService } from '@app/tags/tags.service';
 export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
   @Get()
-  getAll(): Array<string> {
-    return this.tagsService.getAll();
+  async getAll(): Promise<{ tags: Array<string> }> {
+    const tags = await this.tagsService.getAll();
+    return { tags: tags.map((tag) => tag.name) };
   }
 }

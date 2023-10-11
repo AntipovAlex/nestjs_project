@@ -7,4 +7,6 @@ export const config: TypeOrmModuleOptions = {
   username: 'usermediumclone',
   password: '123',
   database: 'mediumclone',
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: true,
 };
