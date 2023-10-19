@@ -87,4 +87,8 @@ export class UsersService {
 
     return user;
   }
+
+  findById(id: number): Promise<UsersEntity> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
 }
