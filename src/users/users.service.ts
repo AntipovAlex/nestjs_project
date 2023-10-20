@@ -8,6 +8,7 @@ import { SECRET_KEY } from '../types';
 import { UserResponse, UserWitoutPasssword } from './users.types';
 import { LoginUserDto } from '@app/dto/loginUser.dto';
 import { compare } from 'bcrypt';
+import { UpdateUserDto } from '@app/dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -90,5 +91,15 @@ export class UsersService {
 
   findById(id: number): Promise<UsersEntity> {
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async updateUser(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UsersEntity> {
+    const user = await this.findById(id);
+    Object.assign(user, updateUserDto);
+
+    return await this.usersRepository.save(user);
   }
 }
