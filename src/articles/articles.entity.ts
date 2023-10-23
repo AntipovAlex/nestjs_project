@@ -1,4 +1,11 @@
-import { BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { UsersEntity } from '@app/users/users.entity';
+import {
+  BeforeUpdate,
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'articles' })
 export class ArticlesEntity {
@@ -39,4 +46,7 @@ export class ArticlesEntity {
   updateTimestamp() {
     this.updatedAt = new Date();
   }
+
+  @ManyToOne(() => UsersEntity, (user) => user.articles)
+  author: UsersEntity;
 }
