@@ -2,9 +2,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ArticlesEntity } from './articles.entity';
 import { UsersEntity } from '@app/users/users.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { DataSource, DeleteResult, Repository } from 'typeorm';
 import slugify from 'slugify';
-import { ArticlesResponse } from './articles.types';
+import {
+  ArticleResponse,
+  ArticlesQueryParams,
+  ArticlesResponse,
+} from './articles.types';
 import { UpdateArticle } from '@app/dto/updateArticle.dto';
 
 @Injectable()
@@ -12,6 +16,9 @@ export class ArticlesService {
   constructor(
     @InjectRepository(ArticlesEntity)
     private readonly articleRepository: Repository<ArticlesEntity>,
+    public readonly dataSource: DataSource,
+    @InjectRepository(UsersEntity)
+    private readonly usersRepository: Repository<UsersEntity>,
   ) {}
   async createArticle(
     currentUser: UsersEntity,
@@ -38,7 +45,7 @@ export class ArticlesService {
     );
   }
 
-  buildArticleResponse(article: ArticlesEntity): ArticlesResponse {
+  buildArticleResponse(article: ArticlesEntity): ArticleResponse {
     return { article };
   }
 
@@ -87,5 +94,44 @@ export class ArticlesService {
     Object.assign(article, updateArticleDto);
 
     return this.articleRepository.save(article);
+  }
+
+  async findArticles(
+    currentUserId: number,
+    query: ArticlesQueryParams,
+  ): Promise<ArticlesResponse> {
+    const queryBuilder = this.dataSource
+      .getRepository(ArticlesEntity)
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author');
+
+    queryBuilder.orderBy('articles.createdAt', 'DESC');
+    const articlesCounter = await queryBuilder.getCount();
+
+    if (query.limit) {
+      queryBuilder.limit(Number(query.limit));
+    }
+
+    if (query.offset) {
+      queryBuilder.offset(Number(query.offset));
+    }
+
+    if (query.author) {
+      const author = this.usersRepository.findOne({
+        where: { name: query.author },
+      });
+      queryBuilder.andWhere('articles.authorId = :id', {
+        id: (await author).id,
+      });
+    }
+
+    if (query.tag) {
+      queryBuilder.andWhere('articles.tagList LIKE :tag', {
+        tag: `%${query.tag}%`,
+      });
+    }
+
+    const articles = await queryBuilder.getMany();
+    return { articles, articlesCounter };
   }
 }
