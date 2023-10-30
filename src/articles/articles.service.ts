@@ -134,4 +134,55 @@ export class ArticlesService {
     const articles = await queryBuilder.getMany();
     return { articles, articlesCounter };
   }
+
+  async addArticleToFavorites(
+    currentUserId: number,
+    slug: string,
+  ): Promise<ArticlesEntity> {
+    const article = await this.findOneBySlug(slug);
+    const user = await this.usersRepository.findOne({
+      where: { id: currentUserId },
+      relations: ['favorites'],
+    });
+
+    const isNotFavorited =
+      user.favorites.findIndex(
+        (articleInFavorites) => articleInFavorites.id === article.id,
+      ) === -1;
+
+    if (isNotFavorited) {
+      user.favorites.push(article);
+      article.favoritesCount++;
+      await this.usersRepository.save(user);
+      await this.articleRepository.save(article);
+    }
+
+    return article;
+  }
+
+  async deleteArticleFromFavorites(
+    currentUserId: number,
+    slug: string,
+  ): Promise<ArticlesEntity> {
+    const article = await this.findOneBySlug(slug);
+    const user = await this.usersRepository.findOne({
+      where: { id: currentUserId },
+      relations: ['favorites'],
+    });
+
+    const articleIndex = user.favorites.findIndex(
+      (articleInFavorites) => articleInFavorites.id === article.id,
+    );
+
+    if (articleIndex >= 0) {
+      user.favorites.splice(articleIndex, 1);
+      console.log('user.favorites', user.favorites);
+
+      article.favoritesCount--;
+      await this.usersRepository.save(user);
+      await this.articleRepository.save(article);
+    }
+
+    return article;
+  }
 }
