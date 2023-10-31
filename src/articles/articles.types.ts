@@ -5,7 +5,7 @@ export interface ArticleResponse {
 }
 
 export type ArticlesResponse = {
-  articles: ArticlesEntity[];
+  articles: ArticlesWithoutupdateTimestamp[];
   articlesCounter: number;
 };
 
@@ -16,3 +16,8 @@ export interface ArticlesQueryParams {
   limit?: string;
   offset?: string;
 }
+
+export type ArticlesWithoutupdateTimestamp = Omit<
+  ArticlesEntity,
+  'updateTimestamp'
+>;
