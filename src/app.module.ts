@@ -7,6 +7,7 @@ import { config } from './ormconfig';
 import { UsersModule } from './users/users.module';
 import { AuthMuddleware } from './middlewares/auth.middleware';
 import { ArticlesModule } from '@app/articles/articles.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ArticlesModule } from '@app/articles/articles.module';
     TagModule,
     UsersModule,
     ArticlesModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
