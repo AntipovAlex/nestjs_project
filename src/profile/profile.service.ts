@@ -31,7 +31,11 @@ export class ProfileService {
       throw new HttpException('Profile does not exit', HttpStatus.NOT_FOUND);
     }
 
-    return { ...user, following: false };
+    const follow = await this.followsRepository.findOne({
+      where: { followedId: currentUserId, followingId: user.id },
+    });
+
+    return { ...user, following: Boolean(follow) };
   }
 
   async followProfile(
@@ -66,5 +70,32 @@ export class ProfileService {
     }
 
     return { ...user, following: true };
+  }
+
+  async unFollowProfile(
+    userName: string,
+    currentUserId: number,
+  ): Promise<ProfileType> {
+    const user: UserWitoutPasssword = await this.usersRepository.findOne({
+      where: { name: userName },
+    });
+
+    if (!user) {
+      throw new HttpException('Profile does not exist', HttpStatus.NOT_FOUND);
+    }
+
+    if (currentUserId === user.id) {
+      throw new HttpException(
+        'Followed user should not be equel following user',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.followsRepository.delete({
+      followedId: currentUserId,
+      followingId: user.id,
+    });
+
+    return { ...user, following: false };
   }
 }
