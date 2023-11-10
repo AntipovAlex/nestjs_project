@@ -6,10 +6,12 @@ import { DataSource, DeleteResult, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
   ArticleResponse,
+  ArticlesQueryFeedParams,
   ArticlesQueryParams,
   ArticlesResponse,
 } from './articles.types';
 import { UpdateArticle } from '@app/dto/updateArticle.dto';
+import { FollowsEntity } from '@app/profile/follow.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -19,6 +21,8 @@ export class ArticlesService {
     public readonly dataSource: DataSource,
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>,
+    @InjectRepository(FollowsEntity)
+    private readonly followRepository: Repository<FollowsEntity>,
   ) {}
   async createArticle(
     currentUser: UsersEntity,
@@ -106,7 +110,7 @@ export class ArticlesService {
       .leftJoinAndSelect('articles.author', 'author');
 
     queryBuilder.orderBy('articles.createdAt', 'DESC');
-    const articlesCounter = await queryBuilder.getCount();
+    const articlesCount = await queryBuilder.getCount();
 
     if (query.limit) {
       queryBuilder.limit(Number(query.limit));
@@ -161,7 +165,44 @@ export class ArticlesService {
       return { ...article, favorited };
     });
 
-    return { articles: articlesWithFavorited, articlesCounter };
+    return { articles: articlesWithFavorited, articlesCount };
+  }
+
+  async feedArticles(
+    currentUserId: number,
+    query: ArticlesQueryFeedParams,
+  ): Promise<ArticlesResponse> {
+    const follows = await this.followRepository.find({
+      where: {
+        followedId: currentUserId,
+      },
+    });
+
+    if (follows.length === 0) {
+      return { articles: [], articlesCount: 0 };
+    }
+
+    const followingUserId = follows.map((follow) => follow.followingId);
+    const queryBuilder = this.dataSource
+      .getRepository(ArticlesEntity)
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author')
+      .where('articles.authorId IN (:...ids)', { ids: followingUserId });
+
+    queryBuilder.orderBy('articles.createdAt', 'DESC');
+    const articlesCount = await queryBuilder.getCount();
+
+    if (query.limit) {
+      queryBuilder.limit(Number(query.limit));
+    }
+
+    if (query.offset) {
+      queryBuilder.offset(Number(query.offset));
+    }
+
+    const articles = await queryBuilder.getMany();
+
+    return { articles, articlesCount };
   }
 
   async addArticleToFavorites(

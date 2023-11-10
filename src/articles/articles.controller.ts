@@ -18,6 +18,7 @@ import { UsersEntity } from '@app/users/users.entity';
 import { ArticlesEntity } from './articles.entity';
 import {
   ArticleResponse,
+  ArticlesQueryFeedParams,
   ArticlesQueryParams,
   ArticlesResponse,
 } from './articles.types';
@@ -32,8 +33,18 @@ export class ArticlesController {
     @UserDecoratar('id') currentUserId: number,
     @Query() query: ArticlesQueryParams,
   ): Promise<ArticlesResponse> {
-    return this.articlesService.findArticles(currentUserId, query);
+    return await this.articlesService.findArticles(currentUserId, query);
   }
+
+  @Get('feed')
+  @UseGuards(AuthGuard)
+  async getFeed(
+    @UserDecoratar('id') currentUserId: number,
+    @Query() query: ArticlesQueryFeedParams,
+  ): Promise<ArticlesResponse> {
+    return await this.articlesService.feedArticles(currentUserId, query);
+  }
+
   @Post()
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
