@@ -10,8 +10,9 @@ import {
   ArticlesQueryParams,
   ArticlesResponse,
 } from './articles.types';
-import { UpdateArticle } from '@app/dto/updateArticle.dto';
 import { FollowsEntity } from '@app/profile/follow.entity';
+import { CreateArticleDto } from '@app/dto/createArticle.dto';
+import { UpdateArticleDto } from '@app/dto/updateArticle.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -26,7 +27,7 @@ export class ArticlesService {
   ) {}
   async createArticle(
     currentUser: UsersEntity,
-    createArticleDto: ArticlesEntity,
+    createArticleDto: CreateArticleDto,
   ): Promise<ArticlesEntity> {
     const newArticle = new ArticlesEntity();
     Object.assign(newArticle, createArticleDto);
@@ -80,7 +81,7 @@ export class ArticlesService {
   async updateSingleArticle(
     currentUserId: number,
     slug: string,
-    updateArticleDto: UpdateArticle,
+    updateArticleDto: UpdateArticleDto,
   ) {
     const article = await this.findOneBySlug(slug);
 
