@@ -13,19 +13,20 @@ export class AuthMuddleware implements NestMiddleware {
   async use(req: RequestInterfaceExpress, res: Response, next: NextFunction) {
     if (!req.headers.authorization) {
       req.user = null;
-      next();
+      return next();
     }
 
     try {
-      const token = req.headers.authorization.split(' ')[1];
-      const decoderUser = verify(token, SECRET_KEY) as UsersEntity;
-
-      const user = await this.userService.findById(decoderUser.id);
-      req.user = user;
-      next();
+      const token = req?.headers?.authorization?.split(' ')[1];
+      if (token) {
+        const decoderUser = verify(token, SECRET_KEY) as UsersEntity;
+        const user = await this.userService.findById(decoderUser.id);
+        req.user = user;
+      }
+      return next();
     } catch (e) {
       req.user = null;
-      next();
+      return next();
     }
   }
 }
