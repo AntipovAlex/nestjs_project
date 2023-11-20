@@ -20,11 +20,11 @@ export class ProfileService {
   }
 
   async getProfile(
-    userName: string,
+    username: string,
     currentUserId: number,
   ): Promise<ProfileType> {
     const user: UserWitoutPasssword = await this.usersRepository.findOne({
-      where: { name: userName },
+      where: { name: username },
     });
 
     if (!user) {
@@ -39,11 +39,11 @@ export class ProfileService {
   }
 
   async followProfile(
-    userName: string,
+    username: string,
     currentUserId: number,
   ): Promise<ProfileType> {
     const user: UserWitoutPasssword = await this.usersRepository.findOne({
-      where: { name: userName },
+      where: { name: username },
     });
 
     if (!user) {
@@ -73,11 +73,11 @@ export class ProfileService {
   }
 
   async unFollowProfile(
-    userName: string,
+    username: string,
     currentUserId: number,
   ): Promise<ProfileType> {
     const user: UserWitoutPasssword = await this.usersRepository.findOne({
-      where: { name: userName },
+      where: { name: username },
     });
 
     if (!user) {

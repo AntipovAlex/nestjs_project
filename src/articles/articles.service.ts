@@ -13,6 +13,8 @@ import {
 import { FollowsEntity } from '@app/profile/follow.entity';
 import { CreateArticleDto } from '@app/dto/createArticle.dto';
 import { UpdateArticleDto } from '@app/dto/updateArticle.dto';
+import { CreateCommentDto } from '@app/dto/createComment.dto';
+import { CommentsEntity } from './comments.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -24,6 +26,8 @@ export class ArticlesService {
     private readonly usersRepository: Repository<UsersEntity>,
     @InjectRepository(FollowsEntity)
     private readonly followRepository: Repository<FollowsEntity>,
+    @InjectRepository(CommentsEntity)
+    private readonly commentsRepository: Repository<CommentsEntity>,
   ) {}
   async createArticle(
     currentUser: UsersEntity,
@@ -40,6 +44,22 @@ export class ArticlesService {
     newArticle.slug = this.getSlug(createArticleDto.title);
 
     return await this.articleRepository.save(newArticle);
+  }
+
+  async createComment(
+    slug: string,
+    createCommentDto: CreateCommentDto,
+  ): Promise<ArticleResponse> {
+    let article = await this.findOneBySlug(slug);
+
+    const comment = new CommentsEntity();
+    Object.assign(comment, createCommentDto);
+    article.comments.push(comment);
+
+    await this.commentsRepository.save(comment);
+    article = await this.articleRepository.save(article);
+
+    return { article };
   }
 
   private getSlug(title: string) {

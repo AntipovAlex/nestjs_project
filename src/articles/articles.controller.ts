@@ -23,6 +23,7 @@ import {
 import { BackendValidationPipe } from '@app/shared/pipes/backendValidation.pipe';
 import { CreateArticleDto } from '@app/dto/createArticle.dto';
 import { UpdateArticleDto } from '@app/dto/updateArticle.dto';
+import { CreateCommentDto } from '@app/dto/createComment.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -57,6 +58,16 @@ export class ArticlesController {
       createArticleDto,
     );
     return this.articlesService.buildArticleResponse(article);
+  }
+
+  @Post(':slug/comments')
+  @UseGuards(AuthGuard)
+  @UsePipes(new BackendValidationPipe())
+  async createComment(
+    @Param('slug') slug: string,
+    @Body('comment') createCommentDto: CreateCommentDto,
+  ): Promise<ArticleResponse> {
+    return await this.articlesService.createComment(slug, createCommentDto);
   }
 
   @Get(':slug')

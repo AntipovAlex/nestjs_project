@@ -3,9 +3,12 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { CommentsEntity } from './comments.entity';
 
 @Entity({ name: 'articles' })
 export class ArticlesEntity {
@@ -49,4 +52,10 @@ export class ArticlesEntity {
 
   @ManyToOne(() => UsersEntity, (user) => user.articles, { eager: true })
   author: UsersEntity;
+
+  @OneToMany(() => CommentsEntity, (comment) => comment.article, {
+    eager: true,
+  })
+  @JoinColumn()
+  comments: CommentsEntity[];
 }
