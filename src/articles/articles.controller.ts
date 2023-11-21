@@ -14,11 +14,13 @@ import { ArticlesService } from './articles.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { UserDecoratar } from '@app/decorators/user.decorators';
 import { UsersEntity } from '@app/users/users.entity';
+import { CommentsEntity } from './comments.entity';
 import {
   ArticleResponse,
   ArticlesQueryFeedParams,
   ArticlesQueryParams,
   ArticlesResponse,
+  CommentsResponse,
 } from './articles.types';
 import { BackendValidationPipe } from '@app/shared/pipes/backendValidation.pipe';
 import { CreateArticleDto } from '@app/dto/createArticle.dto';
@@ -68,6 +70,34 @@ export class ArticlesController {
     @Body('comment') createCommentDto: CreateCommentDto,
   ): Promise<ArticleResponse> {
     return await this.articlesService.createComment(slug, createCommentDto);
+  }
+
+  @Get(':slug/comments')
+  async getComments(@Param('slug') slug: string): Promise<CommentsResponse> {
+    const article = await this.articlesService.findOneBySlug(slug);
+    return { comments: article.comments };
+  }
+
+  @Get(':slug/comments/:id')
+  async getComment(
+    @Param('slug') slug: string,
+    @Param('id') currentComment: number,
+  ): Promise<CommentsEntity> {
+    return this.articlesService.findCommentById(slug, currentComment);
+  }
+
+  @Delete(':slug/comments/:id')
+  async deleteComment(
+    @Param('slug') slug: string,
+    @Param('id') currentComment: string,
+    @UserDecoratar('id') currentUserId: number,
+  ): Promise<ArticleResponse> {
+    const article = await this.articlesService.deleteCommentById(
+      slug,
+      currentComment,
+      currentUserId,
+    );
+    return this.articlesService.buildArticleResponse(article);
   }
 
   @Get(':slug')

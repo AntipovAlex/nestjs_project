@@ -78,6 +78,27 @@ export class ArticlesService {
     return await this.articleRepository.findOne({ where: { slug } });
   }
 
+  async findCommentById(
+    slug: string,
+    currentComment: number,
+  ): Promise<CommentsEntity> {
+    const article = await this.findOneBySlug(slug);
+
+    if (!article) {
+      throw new HttpException('Article is not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    const comment = await this.commentsRepository.findOne({
+      where: { id: String(currentComment) },
+    });
+
+    if (!comment) {
+      throw new HttpException('Comment is not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    return comment;
+  }
+
   async deleteSingleArticle(
     currentUserId: number,
     slug: string,
@@ -96,6 +117,42 @@ export class ArticlesService {
     }
 
     return await this.articleRepository.delete({ slug });
+  }
+
+  async deleteCommentById(
+    slug: string,
+    currentComment: string,
+    currentUserId: number,
+  ): Promise<ArticlesEntity> {
+    let article = await this.findOneBySlug(slug);
+
+    if (!article) {
+      throw new HttpException('Article is not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    if (article.author.id !== currentUserId) {
+      throw new HttpException(
+        'You are not author this article',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const comment = await this.commentsRepository.findOne({
+      where: { id: currentComment },
+    });
+
+    const deleteIndex = article.comments.findIndex(
+      (comm) => comm.id === comment.id,
+    );
+
+    if (deleteIndex >= 0) {
+      const deleteComment = article.comments.splice(deleteIndex, 1);
+      await this.commentsRepository.delete(deleteComment[0].id);
+      article = await this.articleRepository.save(article);
+      return article;
+    } else {
+      return article;
+    }
   }
 
   async updateSingleArticle(
@@ -146,7 +203,7 @@ export class ArticlesService {
         where: { name: query.author },
       });
       queryBuilder.andWhere('articles.authorId = :id', {
-        id: (await author).id,
+        id: author.id,
       });
     }
 

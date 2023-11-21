@@ -1,4 +1,5 @@
 import { ArticlesEntity } from './articles.entity';
+import { CommentsEntity } from './comments.entity';
 
 export interface ArticleResponse {
   article: ArticlesEntity;
@@ -25,4 +26,8 @@ export type ArticlesWithoutupdateTimestamp = Omit<
 export type ArticlesQueryFeedParams = {
   limit?: string;
   offset?: string;
+};
+
+export type CommentsResponse = {
+  comments: CommentsEntity[];
 };
